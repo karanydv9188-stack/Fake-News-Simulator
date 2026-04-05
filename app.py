@@ -139,7 +139,7 @@ def make_network_fig(G, states):
                       xaxis_showgrid=False, yaxis_showgrid=False, height=450)
     return fig
 
-st.title("Fake News Simulator")
+st.title("MisInformation Spread On SocialMedia")
 st.write("SIR on scale-free networks")
 
 with st.sidebar:

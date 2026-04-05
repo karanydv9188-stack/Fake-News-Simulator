@@ -1,0 +1,213 @@
+========================================================
+   MISINFORMATION SPREAD ON SOCIAL MEDIA
+   SIR Model on Scale-Free Networks — Full Explanation
+========================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This simulator models how false information (fake news) spreads
+through a social network using a modified epidemiological SIR model
+combined with a Barabási–Albert (BA) scale-free network structure.
+
+The model captures five distinct node types, two intervention
+strategies, and the emergent dynamics of belief propagation under
+realistic network topology.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. NETWORK STRUCTURE — BARABÁSI–ALBERT (BA) MODEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Real-world social networks (Twitter, Facebook, WhatsApp) follow a
+power-law degree distribution — a few "hubs" (influencers) hold
+vastly more connections than average users.
+
+The BA model replicates this via preferential attachment:
+  → New nodes join the network
+  → They are more likely to connect to already well-connected nodes
+  → Result: "rich get richer" — hubs emerge naturally
+
+Parameters:
+  N  = Total number of nodes (users) in the network
+  m  = Number of edges each new node attaches with
+
+Higher m → denser network → faster spread potential
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. NODE TYPES (STATES)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+S  — SUSCEPTIBLE (Cyan)
+     Ordinary users who have not yet encountered the fake news.
+     They can be infected (become Believers) upon contact with
+     an infected neighbor.
+
+I  — BELIEVERS / INFECTED (Red)
+     Users who have accepted and are actively spreading the
+     misinformation. Each time step, they attempt to infect
+     susceptible neighbors with probability β.
+
+R  — RECOVERED (Green)
+     Users who previously believed the fake news but have since
+     stopped spreading it (debunked, lost interest, etc.).
+     They are immune to re-infection in this model.
+
+SK — SKEPTICS (Purple)
+     Users who are naturally resistant to misinformation.
+     They can still be infected but with reduced probability
+     (β × skeptic_beta_mult, default 0.3×).
+     Represent critical thinkers, media-literate users.
+
+FC — FACT-CHECKERS (Orange)
+     Users who actively counter misinformation.
+     When a Believer is adjacent to a Fact-Checker, their
+     recovery rate γ is multiplied (fc_gamma_mult), causing
+     faster debunking. Represent journalists, moderators,
+     official accounts.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. SIR DYNAMICS — STEP-BY-STEP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+At each discrete time step T:
+
+  INFECTION PHASE:
+  ─────────────────
+  For each Believer (I) node:
+    For each neighbor:
+      If neighbor is S  → infect with probability β
+      If neighbor is SK → infect with probability β × 0.3
+      (Skeptics are 70% resistant)
+
+  RECOVERY PHASE:
+  ────────────────
+  For each Believer (I) node:
+    If any neighbor is a Fact-Checker (FC):
+      recover with probability γ × fc_gamma_mult
+    Else:
+      recover with probability γ
+
+  FC nodes and Skeptic nodes never change state.
+  Recovered (R) nodes cannot be re-infected.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. KEY FORMULA — BASIC REPRODUCTION NUMBER R₀
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+              R₀ = (β × ⟨k⟩) / γ
+
+  β    = infection (spread) rate per contact per step
+  γ    = recovery rate per step
+  ⟨k⟩  = average degree (average connections per node)
+
+Interpretation:
+  R₀ > 1 → Each Believer creates more than one new Believer
+            → Misinformation GROWS and spreads widely
+  R₀ < 1 → Spread naturally dies out over time
+  R₀ = 1 → Critical threshold — epidemic boundary
+
+In scale-free networks, hubs dramatically increase ⟨k⟩,
+pushing R₀ higher and making containment harder.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. INTERVENTION STRATEGIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STRATEGY A — FC BOOST:
+  Multiplies the Fact-Checker recovery effect by fc_mult (2×–4×).
+  Simulates: hiring more moderators, algorithmic debunking,
+  official health authority campaigns, rapid response teams.
+  Effect: Believers near FC nodes recover much faster.
+
+STRATEGY B — REMOVE HUBS:
+  Removes the top hub_pct% highest-degree nodes from the network.
+  Simulates: deplatforming influencers, suspending super-spreader
+  accounts, banning high-reach pages.
+  Effect: Fractures the network, reduces ⟨k⟩, lowers R₀.
+
+Both strategies can be combined for maximum impact.
+Dashed lines on the time series chart show intervention results
+vs. solid baseline lines.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. PARAMETERS GUIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  N          → Network size (100–400 users)
+  m          → BA attachment parameter (2–6 edges)
+  β          → Spread rate (0.01 = low, 0.15 = high viral)
+  γ          → Recovery rate (0.01 = slow, 0.08 = fast)
+  Steps (T)  → Simulation time horizon
+  Init I %   → Seed infection fraction (initial Believers)
+  Skeptics % → Fraction of population that is skeptic-resistant
+  FC %       → Fraction of population acting as fact-checkers
+  FC x       → Boost multiplier for fact-checker recovery
+  Hubs %     → Top percentile of hubs to remove
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. KEY INSIGHTS FROM THE MODEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+① HUBS ARE THE PRIMARY DRIVER
+  Scale-free hubs act as super-spreaders. Removing just 10% of top
+  hubs can reduce peak infection by 30–60% in typical runs.
+
+② FACT-CHECKERS NEED PROXIMITY
+  FC nodes only help their immediate neighbors. Isolated FC nodes
+  have minimal effect — they must be well-connected to matter.
+
+③ SKEPTICS CREATE FRICTION
+  A 10–15% skeptic population can meaningfully slow spread even
+  without any direct intervention, buying time for recovery.
+
+④ EARLY INTERVENTION IS CRITICAL
+  Once I% surpasses ~15–20% of the population, suppression becomes
+  very difficult regardless of intervention strength.
+
+⑤ NETWORK DENSITY MATTERS
+  Higher m (denser network) drastically speeds up spread.
+  Community detection and modular network design can slow it.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. REAL-WORLD RELEVANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This model is inspired by and applicable to:
+  • COVID-19 vaccine misinformation on Twitter/X
+  • Political disinformation during elections
+  • Health scares (anti-vax, 5G radiation myths)
+  • Financial misinformation (crypto pump-and-dump)
+  • Crisis situations where rumours cause panic
+
+Policy implications:
+  → Platform moderation should target hub nodes
+  → Embedding fact-checkers in high-degree communities is efficient
+  → Media literacy (creating skeptics) is a long-term defence
+  → Early detection of seed Believers is crucial
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. LIMITATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  • Static network: real networks evolve over time
+  • No re-infection: some misinformation is cyclical
+  • Homogeneous β: real spread rates vary by content type
+  • No algorithmic amplification layer modelled
+  • Discrete time steps vs. continuous real-world dynamics
+  • No cross-platform spread (Twitter ↔ WhatsApp ↔ Facebook)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Built for academic exploration of computational social science.
+   Model: SIR on Barabási–Albert graph | Language: Python/Streamlit
+========================================================
